@@ -1,0 +1,60 @@
+name: CI for Practice Banking API
+
+# Triggers the workflow on push to main branch and pull requests
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      # Define a service to run Docker in the background
+      docker:
+        image: docker:latest
+        options: --privileged  # Required for Docker-in-Docker
+        ports:
+          - 3000:3000  # Expose the app on port 3000
+
+    steps:
+      # Step 1: Check out the code from the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Node.js environment
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'  # Specify Node.js version to use
+
+      # Step 3: Install the dependencies
+      - name: Install dependencies
+        run: npm install
+
+      # Step 4: Build the Docker image from Dockerfile
+      - name: Build Docker image
+        run: docker build -t banking-api .
+
+      # Step 5: Run the Docker container in detached mode
+      - name: Run Docker container
+        run: docker run -d -p 3000:3000 --name banking-api-container banking-api
+
+      # Step 6: Wait for the API to be ready
+      - name: Wait for API to be ready
+        run: |
+          # Wait for a maximum of 30 seconds until the health check is ready
+          timeout 30 bash -c 'until curl -s http://localhost:3000/health; do sleep 2; done'
+        shell: bash
+
+      # Step 7: Run Jest tests using Supertest
+      - name: Run tests
+        run: npm test
+
+      # Step 8: Stop and clean up the Docker container
+      - name: Cleanup Docker container
+        run: docker stop banking-api-container && docker rm banking-api-container
