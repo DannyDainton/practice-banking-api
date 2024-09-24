@@ -51,17 +51,10 @@ jobs:
       - name: Run Docker container
         run: docker run -d -p 3000:3000 --name banking-api-container banking-api
 
-      # Step 7: Wait for the API to be ready
-      - name: Wait for API to be ready
-        run: |
-          # Wait for a maximum of 30 seconds until the health check is ready
-          timeout 30 bash -c 'until curl -s http://localhost:3000/health; do sleep 2; done'
-        shell: bash
-
-      # Step 8: Run Jest tests using Supertest
+      # Step 7: Run Jest tests using Supertest
       - name: Run tests
         run: npm test
 
-      # Step 9: Stop and clean up the Docker container
+      # Step 8: Stop and clean up the Docker container
       - name: Cleanup Docker container
         run: docker stop banking-api-container && docker rm banking-api-container
