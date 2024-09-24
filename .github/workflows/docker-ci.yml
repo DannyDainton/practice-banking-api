@@ -59,6 +59,22 @@ jobs:
           API_URL: "http://localhost:${{ env.DYNAMIC_PORT }}"  # Use dynamic port from environment
         run: npm test
 
+      # Step 9: Install Postman CLI
+      - name: Install Postman CLI
+        run: |
+          curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
+
+      # Step 10: Login to Postman CLI
+      - name: Login to Postman CLI
+        run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
+
+      # Step 11: Run Postman collection tests
+      - name: Run Postman API tests
+        run: |
+          postman collection run "8213448-3cd5f902-bb56-4eff-b4d0-156428f07ad0" \
+          -e "8213448-e32bcf1a-c929-4a7a-b881-312cc5e643df" --env-var "port:${{env.DYNAMIC_PORT}}"
+
+
       # Step 9: Clean up the Docker container
       - name: Cleanup Docker container
         run: docker stop banking-api-container && docker rm banking-api-container
