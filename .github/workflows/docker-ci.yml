@@ -1,6 +1,5 @@
-name: CI for Practice Banking API
+name: CI for Node.js Docker Application
 
-# Triggers the workflow on push to main branch and pull requests
 on:
   push:
     branches:
@@ -14,12 +13,9 @@ jobs:
     runs-on: ubuntu-latest
 
     services:
-      # Define a service to run Docker in the background
       docker:
         image: docker:latest
-        options: --privileged  # Required for Docker-in-Docker
-        ports:
-          - 3000:3000  # Expose the app on port 3000
+        options: --privileged
 
     steps:
       # Step 1: Check out the code from the repository
@@ -30,31 +26,39 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'  # Specify Node.js version to use
+          node-version: '18'
 
-      # Step 3: Install the dependencies
+      # Step 3: Install dependencies
       - name: Install dependencies
         run: npm install
 
-      # Step 4: Stop any existing containers on port 3000 (prevent port conflict)
-      - name: Stop existing container on port 3000
-        run: |
-          if [ $(docker ps -q -f publish=3000) ]; then
-            docker stop $(docker ps -q -f publish=3000)
-          fi
-
-      # Step 5: Build the Docker image from Dockerfile
+      # Step 4: Build the Docker image from Dockerfile
       - name: Build Docker image
         run: docker build -t banking-api .
 
-      # Step 6: Run the Docker container in detached mode
-      - name: Run Docker container
-        run: docker run -d -p 3000:3000 --name banking-api-container banking-api
+      # Step 5: Run the Docker container with dynamic port mapping
+      - name: Run Docker container with dynamic port
+        run: docker run -d -p 0:3000 --name banking-api-container banking-api
 
-      # Step 7: Run Jest tests using Supertest
+      # Step 6: Get the dynamically allocated port and export it to an environment variable
+      - name: Get Docker dynamic port
+        run: |
+          # Extract the dynamic port mapped to the container's port 3000
+          DYNAMIC_PORT=$(docker inspect --format='{{(index (index .NetworkSettings.Ports "3000/tcp") 0).HostPort}}' banking-api-container)
+          echo "DYNAMIC_PORT=$DYNAMIC_PORT" >> $GITHUB_ENV  # Save dynamic port to environment
+
+      # Step 7: Wait for the API to be ready using the dynamic port
+      - name: Wait for API to be ready
+        run: |
+          echo "Waiting for the API to be available on port $DYNAMIC_PORT"
+          timeout 30 bash -c 'until curl -s http://localhost:$DYNAMIC_PORT/health; do sleep 2; done'
+
+      # Step 8: Run Jest tests using Supertest, passing the dynamic port to the test environment
       - name: Run tests
+        env:
+          API_URL: "http://localhost:${{ env.DYNAMIC_PORT }}"  # Use dynamic port from environment
         run: npm test
 
-      # Step 8: Stop and clean up the Docker container
+      # Step 9: Clean up the Docker container
       - name: Cleanup Docker container
         run: docker stop banking-api-container && docker rm banking-api-container

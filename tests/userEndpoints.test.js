@@ -1,6 +1,6 @@
 const request = require('supertest');
 
-const apiUrl = 'http://localhost:3000';
+const apiUrl = process.env.API_URL || 'http://localhost:3000';
 
 describe('User API Endpoints', () => {
     it('should ping the health check endpoint', async () => {
