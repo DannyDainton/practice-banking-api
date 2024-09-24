@@ -1,11 +1,11 @@
 const express = require('express');
-const { sequelize } = require('./models'); // Import Sequelize instance
-const { User } = require('./models/User'); // Import the User model
+const { sequelize } = require('./models');
+const { User } = require('./models/User');
 
 const app = express();
-app.use(express.json()); // Middleware to parse JSON requests
+app.use(express.json());
 
-// Sync the database
+// Sync The Database
 sequelize.sync().then(() => {
   console.log('Database connected and synced');
 });
@@ -17,21 +17,19 @@ app.get('/health', (req, res) => {
 // Get All Users Route
 app.get('/users', async (req, res) => {
     try {
-      // Fetch all users from the database
       const users = await User.findAll();
   
-      // Return the list of users
       return res.status(200).json(users);
     } catch (err) {
       return res.status(500).json({ error: 'Failed to retrieve users' });
     }
 });
 
+// Get Single User Route
 app.get('/user/:userId', async (req, res) => {
     const { userId } = req.params;
   
     try {
-      // Find the user by ID
       const user = await User.findByPk(userId);
   
       if (!user) {
@@ -53,13 +51,12 @@ app.post('/user', async (req, res) => {
   }
 
   try {
-    // Create a new user in the database
     const user = await User.create({
       name,
       balance: initialBalance
     });
 
-    return res.status(201).json({ message: 'User created', userId: user.id, balance: user.balance });
+    return res.status(201).json({ message: 'User created', userId: user.id, userName: user.name, balance: user.balance });
   } catch (err) {
     return res.status(500).json({ error: 'Failed to create user' });
   }
@@ -70,7 +67,6 @@ app.delete('/user/:userId', async (req, res) => {
     const { userId } = req.params;
   
     try {
-      // Find the user by ID
       const user = await User.findByPk(userId);
   
       if (!user) {
@@ -95,7 +91,6 @@ app.post('/transaction', async (req, res) => {
   }
 
   try {
-    // Find both users in the database
     const fromUser = await User.findByPk(fromUserId);
     const toUser = await User.findByPk(toUserId);
 
@@ -107,7 +102,6 @@ app.post('/transaction', async (req, res) => {
       return res.status(400).json({ error: 'Insufficient balance' });
     }
 
-    // Update balances in a transaction
     await sequelize.transaction(async (t) => {
       fromUser.balance -= amount;
       toUser.balance += amount;
@@ -122,7 +116,7 @@ app.post('/transaction', async (req, res) => {
   }
 });
 
-// Start the server
+// Start The Server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
