@@ -1,6 +1,7 @@
 const express = require('express');
 const { sequelize } = require('./models');
 const { User } = require('./models/User');
+const { Transaction } = require('./models/Transaction');
 
 const app = express();
 app.use(express.json());
@@ -106,6 +107,12 @@ app.post('/transaction', async (req, res) => {
       fromUser.balance -= amount;
       toUser.balance += amount;
 
+      await Transaction.create({
+        fromUserId,
+        toUserId,
+        amount
+      }, { transaction: t });
+
       await fromUser.save({ transaction: t });
       await toUser.save({ transaction: t });
     });
@@ -113,6 +120,18 @@ app.post('/transaction', async (req, res) => {
     return res.status(200).json({ message: 'Transaction successful', fromUser, toUser });
   } catch (err) {
     return res.status(500).json({ error: 'Transaction failed' });
+  }
+});
+
+app.get('/transactions', async (req, res) => {
+  try {
+    // Query all transactions from the Transaction model
+    const transactions = await Transaction.findAll();
+
+    return res.status(200).json(transactions);
+  } catch (error) {
+    console.error('Error fetching transactions:', error);
+    return res.status(500).json({ error: 'Failed to fetch transactions' });
   }
 });
 
