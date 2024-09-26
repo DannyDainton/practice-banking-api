@@ -135,6 +135,29 @@ app.get('/transactions', async (req, res) => {
   }
 });
 
+// Get transactions for a specific user by userId
+app.get('/transactions/:userId', async (req, res) => {
+  const { userId } = req.params;  // Get userId from the URL
+
+  try {
+    // Find transactions where the user is either the sender or receiver
+    const transactions = await Transaction.findAll({
+      where: {
+        [Op.or]: [
+          { fromUserId: userId },
+          { toUserId: userId }
+        ]
+      }
+    });
+
+    return res.status(200).json(transactions);
+  } catch (error) {
+    console.error('Error fetching user transactions:', error);
+    return res.status(500).json({ error: 'Failed to fetch user transactions' });
+  }
+});
+
+
 // Start The Server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
