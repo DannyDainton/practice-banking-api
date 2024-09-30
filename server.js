@@ -2,12 +2,13 @@ const express = require('express');
 const { sequelize } = require('./models');
 const { User } = require('./models/User');
 const { Transaction } = require('./models/Transaction');
+const { Op } = require('sequelize');
 
 const app = express();
 app.use(express.json());
 
 // Sync The Database
-sequelize.sync().then(() => {
+sequelize.sync({ force: true }).then(() => {
   console.log('Database connected and synced');
 });
 
@@ -125,7 +126,6 @@ app.post('/transaction', async (req, res) => {
 
 app.get('/transactions', async (req, res) => {
   try {
-    // Query all transactions from the Transaction model
     const transactions = await Transaction.findAll();
 
     return res.status(200).json(transactions);
@@ -135,12 +135,11 @@ app.get('/transactions', async (req, res) => {
   }
 });
 
-// Get transactions for a specific user by userId
 app.get('/transactions/:userId', async (req, res) => {
-  const { userId } = req.params;  // Get userId from the URL
+  const { userId } = req.params;
 
   try {
-    // Find transactions where the user is either the sender or receiver
+
     const transactions = await Transaction.findAll({
       where: {
         [Op.or]: [

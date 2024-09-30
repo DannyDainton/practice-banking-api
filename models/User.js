@@ -19,4 +19,15 @@ const User = sequelize.define('User', {
   },
 });
 
+// Associations
+User.hasMany(require('./Transaction').Transaction, {
+  foreignKey: 'fromUserId',
+  onDelete: 'CASCADE',
+});
+
+User.hasMany(require('./Transaction').Transaction, {
+  foreignKey: 'toUserId',
+  onDelete: 'CASCADE',
+});
+
 module.exports = { User };
