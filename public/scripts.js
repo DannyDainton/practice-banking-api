@@ -17,7 +17,7 @@ async function fetchUsers() {
             <td>${user.balance}</td>
             <td>
               <button class="button is-small is-link" onclick="copyToClipboard('${user.id}')">Copy ID</button>
-              <button class="button is-danger is-small" onclick="deleteUser('${user.id}')">Delete</button>
+              <button id="delete-user" class="button is-danger is-small" onclick="deleteUser('${user.id}')">Delete</button>
             </td>
           </tr>
         `;

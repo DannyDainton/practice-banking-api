@@ -32,6 +32,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Install Playwright browsers
+      - name: Install Playwright dependencies
+        run: npx playwright install --with-deps
+
       # Build the Docker image from Dockerfile
       - name: Build Docker image
         run: docker build -t banking-api .
@@ -58,10 +62,16 @@ jobs:
         run: npm run clear-db
 
       # Run Jest tests using Supertest, passing the dynamic port to the test environment
-      - name: Run tests
+      - name: Run Jest tests
         env:
           API_URL: "http://localhost:${{ env.DYNAMIC_PORT }}"  # Use dynamic port from environment
-        run: npm test
+        run: npm run test:api
+
+      # Run Playwright UI tests
+      - name: Run Playwright tests
+        env:
+          BASE_URL: "http://localhost:${{ env.DYNAMIC_PORT }}"  # Use dynamic port for Playwright
+        run: npx playwright test --base-url="http://localhost:${{ env.DYNAMIC_PORT }}"
 
       # Install Postman CLI
       - name: Install Postman CLI
