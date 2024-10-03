@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banking App</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
+    <link rel="stylesheet" href="style.css"> <!-- Add your custom styles -->
+    <script defer src="https://unpkg.com/axios/dist/axios.min.js"></script> <!-- For HTTP requests -->
+    <script defer src="/scripts.js"></script> <!-- Custom JS for API interaction -->
+</head>
+
+<body>
+    <section class="section">
+        <div class="container">
+            <!-- Tabs Navigation -->
+            <div class="tabs is-centered is-boxed is-large">
+                <ul>
+                    <li class="is-active" id="tab-users">
+                        <a href="javascript:void(0)" onclick="showTab('users-section')">
+                            <span class="icon is-small"><i class="fas fa-users"></i></span>
+                            <span>Users Management</span>
+                        </a>
+                    </li>
+                    <li id="tab-transactions">
+                        <a href="javascript:void(0)" onclick="showTab('transactions-section')">
+                            <span class="icon is-small"><i class="fas fa-money-check"></i></span>
+                            <span>Transactions</span>
+                        </a>
+                    </li>
+                    <li id="tab-user-view">
+                        <a href="javascript:void(0)" onclick="showTab('user-view-section')">
+                            <span class="icon is-small"><i class="fas fa-user"></i></span>
+                            <span>Single User View</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Users Management Section -->
+            <div id="users-section" class="tab-content">
+                <div class="columns">
+                    <div class="column is-half is-offset-one-quarter">
+                        <h2 class="subtitle">Create a New User</h2>
+                        <form id="create-user-form" class="box">
+                            <div class="field">
+                                <label class="label">Name</label>
+                                <div class="control">
+                                    <input class="input" type="text" id="userName" placeholder="User Name" required>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <label class="label">Initial Balance</label>
+                                <div class="control">
+                                    <input class="input" type="number" id="initialBalance" placeholder="Initial Balance" required>
+                                </div>
+                            </div>
+                            <div class="control">
+                                <button class="button is-primary is-fullwidth" type="submit">Create User</button>
+                            </div>
+                            <div id="user-error" class="notification is-danger" style="display: none;"></div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Users Table -->
+                <h2 class="subtitle">All Users</h2>
+                <table class="table is-striped is-hoverable is-fullwidth">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Balance</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-body"></tbody>
+                    <div id="copy-notification" class="notification is-success" style="display: none;"></div>
+                </table>
+            </div>
+
+            <!-- Transactions Section -->
+            <div id="transactions-section" class="tab-content" style="display: none;">
+                <div class="columns">
+                    <div class="column is-half is-offset-one-quarter">
+                        <h2 class="subtitle">Create a Transaction</h2>
+                        <form id="transaction-form" class="box">
+                            <div class="field">
+                                <label class="label">From User ID</label>
+                                <div class="control">
+                                    <input class="input" type="text" id="fromUserId" placeholder="From User ID" required>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <label class="label">To User ID</label>
+                                <div class="control">
+                                    <input class="input" type="text" id="toUserId" placeholder="To User ID" required>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <label class="label">Amount</label>
+                                <div class="control">
+                                    <input class="input" type="number" id="amount" placeholder="Amount" required>
+                                </div>
+                            </div>
+                            <div class="control">
+                                <button class="button is-link is-fullwidth" type="submit">Submit Transaction</button>
+                            </div>
+                            <div id="transaction-error" class="notification is-danger" style="display: none;"></div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Transactions Table -->
+                <h2 class="subtitle">Transaction History</h2>
+                <table class="table is-striped is-hoverable is-fullwidth">
+                    <thead>
+                        <tr>
+                            <th>Created</th>
+                            <th>From User</th>
+                            <th>To User</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactions-body"></tbody>
+                </table>
+            </div>
+
+            <!-- Single User View Section -->
+            <div id="user-view-section" class="tab-content" style="display: none;">
+                <div class="columns">
+                    <div class="column is-half is-offset-one-quarter">
+                        <h2 class="subtitle">View a User</h2>
+                        <form id="single-user-form" class="box">
+                            <div class="field">
+                                <label class="label">User ID</label>
+                                <div class="control">
+                                    <input class="input" type="text" id="singleUserId" placeholder="User ID" required>
+                                </div>
+                            </div>
+                            <div class="control">
+                                <button class="button is-success is-fullwidth" type="submit">View User</button>
+                            </div>
+                            <div id="single-user-error" class="notification is-danger" style="display: none;"></div>
+                        </form>
+
+                        <!-- User Profile Card -->
+                        <div class="box" id="user-details" style="display: none;">
+                            <article class="media">
+                                <figure class="media-left">
+                                    <p class="image is-150x150">
+                                        <img src="./images/user-icon.png" id="user-profile-img" alt="User profile">
+                                    </p>
+                                </figure>
+                                <div class="media-content">
+                                    <div class="content">
+                                        <p id="user-name" class="title is-4"></p>
+                                        <p id="user-balance" class="subtitle is-6"></p>
+                                    </div>
+                                </div>
+                            </article>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Transactions Table -->
+                <h2 class="subtitle">User Transactions</h2>
+                <table class="table is-striped is-hoverable is-fullwidth" id="user-transactions-table">
+                    <thead>
+                        <tr>
+                            <th>Created</th>
+                            <th>From User</th>
+                            <th>To User</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user-transactions-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Tab switching logic
+        function showTab(tabId) {
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.style.display = 'none'); // Hide all tabs
+            document.getElementById(tabId).style.display = 'block'; // Show the selected tab
+
+            // Remove active class from all tabs
+            document.querySelectorAll('.tabs ul li').forEach(tab => tab.classList.remove('is-active'));
+
+            // Add active class to the clicked tab
+            if (tabId === 'users-section') document.getElementById('tab-users').classList.add('is-active');
+            if (tabId === 'transactions-section') document.getElementById('tab-transactions').classList.add('is-active');
+            if (tabId === 'user-view-section') document.getElementById('tab-user-view').classList.add('is-active');
+        }
+    </script>
+</body>
+
+</html>

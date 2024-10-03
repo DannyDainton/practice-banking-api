@@ -1,16 +1,37 @@
 const express = require('express');
+const WebSocket = require('ws');
 const { sequelize } = require('./models');
 const { User } = require('./models/User');
 const { Transaction } = require('./models/Transaction');
 const { Op } = require('sequelize');
 
 const app = express();
+app.use(express.static('public'));
 app.use(express.json());
 
 // Sync The Database
 sequelize.sync({ force: true }).then(() => {
   console.log('Database connected and synced');
 });
+
+function broadcastUpdate(data) {
+  wss.clients.forEach(client => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify(data));
+    }
+  });
+}
+
+async function sendInitialData(ws) {
+  try {
+    const users = await User.findAll();
+    const transactions = await Transaction.findAll();
+    
+    ws.send(JSON.stringify({ type: 'INITIAL_DATA', users, transactions }));
+  } catch (error) {
+    console.error('Error sending initial data:', error);
+  }
+}
 
 app.get('/health', (req, res) => {
     res.status(200).json({ status: 'ok' });
@@ -58,6 +79,8 @@ app.post('/user', async (req, res) => {
       balance: initialBalance
     });
 
+    broadcastUpdate({ type: 'userCreated', user });
+
     return res.status(201).json({ message: 'User created', userId: user.id, userName: user.name, balance: user.balance });
   } catch (err) {
     return res.status(500).json({ error: 'Failed to create user' });
@@ -77,6 +100,8 @@ app.delete('/user/:userId', async (req, res) => {
   
       // Delete the user
       await user.destroy();
+
+      broadcastUpdate({ type: 'userDeleted', userId });
   
       return res.status(200).json({ message: 'User deleted successfully' });
     } catch (err) {
@@ -117,6 +142,8 @@ app.post('/transaction', async (req, res) => {
       await fromUser.save({ transaction: t });
       await toUser.save({ transaction: t });
     });
+
+    broadcastUpdate({ type: 'transaction', fromUserId, toUserId, amount });
 
     return res.status(200).json({ message: 'Transaction successful', fromUser, toUser });
   } catch (err) {
@@ -159,6 +186,35 @@ app.get('/transactions/:userId', async (req, res) => {
 
 // Start The Server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+});
+
+const wss = new WebSocket.Server({ server });
+
+function broadcastData(data) {
+  wss.clients.forEach(client => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify(data));
+    }
+  });
+}
+
+wss.on('connection', ws => {
+  console.log('New client connected');
+  sendInitialData(ws);
+
+  ws.on('message', async (message) => {
+    const data = JSON.parse(message);
+    
+    if (data.type === 'REFRESH_TRANSACTIONS') {
+      // Fetch and broadcast updated transactions to all clients
+      const transactions = await Transaction.findAll();
+      broadcastData({ type: 'UPDATED_TRANSACTIONS', transactions });
+    }
+  });
+
+  ws.on('close', () => {
+    console.log('Client disconnected');
+  });
 });
