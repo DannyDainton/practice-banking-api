@@ -71,7 +71,7 @@ jobs:
       - name: Run Playwright tests
         env:
           BASE_URL: "http://localhost:${{ env.DYNAMIC_PORT }}"  # Use dynamic port for Playwright
-        run: npx playwright test --base-url="http://localhost:${{ env.DYNAMIC_PORT }}"
+        run: npm run test:ui"
 
       # Install Postman CLI
       - name: Install Postman CLI

@@ -1,10 +1,13 @@
 const { test, expect } = require('@playwright/test');
 
+// Get the BASE_URL from the environment or default to localhost:3000
+const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+
 test.describe('Banking App UI Tests', () => {
 
   // Before each test, go to the main page
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:3000');  // Adjust the URL based on your app's configuration
+    await page.goto(baseUrl);
   });
 
   // 1. Test case: Check the page title
@@ -39,7 +42,7 @@ test.describe('Banking App UI Tests', () => {
     await page.click('#tab-user-view a');
 
     // Fill the user ID to view the details (assuming user ID is accessible)
-    const userIdLocator = userList.locator('tr', { hasText: 'Jane Doe' }).locator('td:first-child');  // Adjust if necessary
+    const userIdLocator = userList.locator('tr', { hasText: 'Jane Doe' }).locator('td:first-child');
     const userId = await userIdLocator.innerText();
     await page.fill('#singleUserId', userId);
     await page.click('#viewUser');
@@ -94,7 +97,7 @@ test.describe('Banking App UI Tests', () => {
     await expect(userList).toContainText('Delete Me');
 
     // Find the delete button for this user and click it
-    const deleteButton = userList.locator('tr', { hasText: 'Delete Me' }).locator('#delete-user');  // Adjust selector if necessary
+    const deleteButton = userList.locator('tr', { hasText: 'Delete Me' }).locator('#delete-user');
     await deleteButton.click();
 
     // Verify the user is removed
