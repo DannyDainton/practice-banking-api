@@ -17,7 +17,7 @@ async function fetchUsers() {
             <td>${user.balance}</td>
             <td>
               <button class="button is-small is-link" onclick="copyToClipboard('${user.id}')">Copy ID</button>
-              <button id="delete-user" class="button is-danger is-small" onclick="deleteUser('${user.id}')">Delete</button>
+              <button id="delete-user" class="button is-danger is-small" onclick="confirmDeleteUser('${user.id}')">Delete</button>
             </td>
           </tr>
         `;
@@ -67,8 +67,10 @@ async function fetchUsers() {
       document.getElementById('user-details').style.display = 'block';
   
       // Update user details
-      document.getElementById('user-name').innerHTML = `Name: ${user.name}`;
-      document.getElementById('user-balance').innerHTML = `Balance: ${user.balance}`;
+      document.getElementById('user-name').innerHTML = `${user.name}`;
+      document.getElementById('user-balance').innerHTML = `${user.balance}`;
+      document.getElementById('user-email').innerHTML = `${user.name}@example.com`;
+      document.getElementById('user-joined').innerHTML = `${user.createdAt}`;
   
       // Fetch and display user's transactions
       const transactionsResponse = await axios.get(`/transactions/${userId}`);
@@ -79,6 +81,7 @@ async function fetchUsers() {
   
       transactions.forEach(tx => {
         const row = `<tr>
+          <td>${tx.id}</td>
           <td>${tx.createdAt}</td>
           <td>${tx.fromUserId}</td>
           <td>${tx.toUserId}</td>
@@ -97,6 +100,28 @@ async function fetchUsers() {
     }
   });
   
+  let userIdToDelete = null;
+
+  function confirmDeleteUser(userId) {
+      userIdToDelete = userId;
+      const deleteModal = document.getElementById('deleteModal');
+      deleteModal.classList.add('is-active');
+  }
+
+  document.getElementById('confirmDelete').addEventListener('click', () => {
+      if (userIdToDelete !== null) {
+          deleteUser(userIdToDelete);
+      }
+      closeModal();
+  });
+
+  document.getElementById('cancelDelete').addEventListener('click', closeModal);
+  document.querySelector('.modal-close').addEventListener('click', closeModal);
+
+  function closeModal() {
+      const deleteModal = document.getElementById('deleteModal');
+      deleteModal.classList.remove('is-active');
+  }
   
   // Delete a user
   async function deleteUser(userId) {
@@ -128,6 +153,7 @@ async function fetchUsers() {
       transactions.forEach(transaction => {
         const row = `
           <tr>
+            <td>${transaction.id}</td>
             <td>${transaction.createdAt}</td>
             <td>${transaction.fromUserId}</td>
             <td>${transaction.toUserId}</td>
@@ -283,7 +309,7 @@ async function fetchUsers() {
     
     users.forEach(user => {
       const listItem = document.createElement('li');
-      listItem.textContent = `${user.name} - Balance: ${user.balance}`;
+      listItem.textContent = `${user.name} - ${user.balance}`;
       usersList.appendChild(listItem);
     });
   }

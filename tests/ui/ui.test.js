@@ -16,7 +16,7 @@ test.describe('Banking App UI Tests', () => {
 
   // 1. Test case: Check the page title
   test('should have the correct title', async ({ page }) => {
-    await expect(page).toHaveTitle('Banking App');
+    await expect(page).toHaveTitle('Example Banking Application');
   });
 
   // 2. Test case: Create a user and check if it's added to the list
@@ -35,6 +35,9 @@ test.describe('Banking App UI Tests', () => {
     // Find the delete button for this user and click it
     const deleteButton = userList.locator('tr', { hasText: userName }).locator('#delete-user');
     await deleteButton.click();
+
+    const confirmDeleteUser = page.locator('#confirmDelete');
+    await confirmDeleteUser.click();
 
     // Verify the user is removed
     await expect(userList).not.toContainText(userName);
@@ -118,6 +121,10 @@ test.describe('Banking App UI Tests', () => {
     // Find the delete button for this user and click it
     const deleteButton = userList.locator('tr', { hasText: 'Delete Me' }).locator('#delete-user');
     await deleteButton.click();
+
+    // Find the confirmation delete button and click it
+    const confirmDeleteUser = page.locator('#confirmDelete');
+    await confirmDeleteUser.click();
 
     // Verify the user is removed
     await expect(userList).not.toContainText('Delete Me');

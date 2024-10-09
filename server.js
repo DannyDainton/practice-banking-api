@@ -129,6 +129,10 @@ app.post('/transaction', async (req, res) => {
       return res.status(400).json({ error: 'Insufficient balance' });
     }
 
+    if (fromUserId === toUserId) {
+      return res.status(400).json({ error: 'Unable to make transactions to your own account' });
+    }
+
     await sequelize.transaction(async (t) => {
       fromUser.balance -= amount;
       toUser.balance += amount;

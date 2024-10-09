@@ -8,7 +8,7 @@ const Transaction = sequelize.define('Transaction', {
     primaryKey: true,
   },
   fromUserId: {
-    type: DataTypes.UUID,
+    type: DataTypes.INTEGER,
     allowNull: false,
     references: {
       model: 'Users',
@@ -17,7 +17,7 @@ const Transaction = sequelize.define('Transaction', {
     onDelete: 'CASCADE'
   },
   toUserId: {
-    type: DataTypes.UUID,
+    type: DataTypes.INTEGER,
     allowNull: false,
     references: {
       model: 'Users',
