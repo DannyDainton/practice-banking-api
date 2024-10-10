@@ -171,6 +171,12 @@ app.get('/transactions/:userId', async (req, res) => {
 
   try {
 
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
     const transactions = await Transaction.findAll({
       where: {
         [Op.or]: [
