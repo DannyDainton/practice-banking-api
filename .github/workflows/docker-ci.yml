@@ -86,7 +86,7 @@ jobs:
       - name: Run Postman API tests
         run: |
           postman collection run "8213448-3cd5f902-bb56-4eff-b4d0-156428f07ad0" \
-          -e "8213448-e32bcf1a-c929-4a7a-b881-312cc5e643df" --env-var "port=${{env.DYNAMIC_PORT}}"
+          -e "8213448-e32bcf1a-c929-4a7a-b881-312cc5e643df" --env-var "port=${{env.DYNAMIC_PORT}} -r cli,json"
 
       # Clean up the Docker container
       - name: Cleanup Docker container
