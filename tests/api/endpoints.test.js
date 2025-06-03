@@ -1,7 +1,7 @@
 const request = require('supertest');
 
 const apiUrl = process.env.API_URL || 'http://localhost:3000';
-
+//Tests
 describe('Banking API Endpoints', () => {
     it('should ping the health check endpoint', async () => {
         const res = await request(apiUrl)
